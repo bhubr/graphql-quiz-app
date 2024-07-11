@@ -1,53 +1,28 @@
-import { useState } from "react";
-import { FlatList, Pressable, Text, View, StyleSheet } from "react-native";
+import { useCallback, useState } from "react";
+import {
+  Button,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+  StyleSheet,
+} from "react-native";
 
-const questions = [
-  {
-    title: "How to create a new branch with Git?",
-    answers: [
-      {
-        text: "git checkout -b <branch>",
-        correct: true,
-      },
-      {
-        text: "git create <branch>",
-        correct: false,
-      },
-      {
-        text: "git branch <branch>",
-        correct: true,
-      },
-      {
-        text: "git switch -c <branch>",
-        correct: true,
-      },
-    ],
-  },
-  {
-    title: "How to rename a branch?",
-    answers: [
-      {
-        text: "git rename <oldbranch> <newbranch>",
-        correct: false,
-      },
-      {
-        text: "git branch -m <newbranch>",
-        correct: true,
-      },
-    ],
-  },
-];
+const getAnswerBgColor = (pressed, active) => {
+  if (pressed) {
+    return "rgb(210, 230, 255)";
+  }
+  return active ? "rgb(210, 255, 230)" : "white";
+};
 
 const createBlankAnswers = (question) =>
   new Array(question.answers.length).fill(null);
 
-function Question({ question }) {
-  const [answers, setAnswers] = useState(createBlankAnswers(question));
-
-  const toggleAnswer = (index) => {
-    console.log("toggle", index);
-    setAnswers((prev) => prev.map((a, i) => (i === index ? !a : a)));
-  };
+function Question({ question, answers, toggleAnswer }) {
+  // const toggleAnswer = (index) => {
+  //   console.log("toggle", index);
+  //   setAnswers((prev) => prev.map((a, i) => (i === index ? !a : a)));
+  // };
   return (
     <View style={styles.question}>
       <Text style={styles.questionTitle}>{question.title}</Text>
@@ -59,7 +34,7 @@ function Question({ question }) {
             onPress={() => toggleAnswer(index)}
             style={({ pressed }) => [
               {
-                backgroundColor: pressed ? "rgb(210, 230, 255)" : "white",
+                backgroundColor: getAnswerBgColor(pressed, answers[index]),
               },
             ]}
           >
@@ -72,11 +47,44 @@ function Question({ question }) {
   );
 }
 
-export default function Quiz() {
+export default function Quiz({ questions }) {
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState(questions.map(createBlankAnswers));
+  const toggleQuestionAnswer = useCallback(
+    (ansIndex) =>
+      setAnswers((prevAnswers) =>
+        prevAnswers.map((ans, queIndex) =>
+          queIndex !== questionIndex
+            ? ans
+            : ans.map((a, ai) => (ai !== ansIndex ? a : !a)),
+        ),
+      ),
+    [questionIndex],
+  );
+
+  const onPressPrev = () => setQuestionIndex((i) => i - 1);
+  const onPressNext = () => setQuestionIndex((i) => i + 1);
   return (
     <View style={styles.container}>
-      <Question question={questions[questionIndex]} />
+      {/* NOW NEED CHANGING SETANSWERS */}
+      <Question
+        question={questions[questionIndex]}
+        answers={answers[questionIndex]}
+        toggleAnswer={toggleQuestionAnswer}
+      />
+
+      <View style={styles.navButtons}>
+        <Button
+          title="prev"
+          onPress={onPressPrev}
+          disabled={questionIndex === 0}
+        />
+        <Button
+          title="next"
+          onPress={onPressNext}
+          disabled={questionIndex === questions.length - 1}
+        />
+      </View>
     </View>
   );
 }
@@ -86,7 +94,14 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 50,
   },
+  question: {
+    height: "80%",
+  },
   questionTitle: {
     fontWeight: "bold",
+  },
+  navButtons: {
+    justifyContent: "space-around",
+    flexDirection: "row",
   },
 });
