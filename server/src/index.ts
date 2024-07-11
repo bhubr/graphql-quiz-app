@@ -75,6 +75,22 @@ const quizzes = [
           },
         ],
       },
+      {
+        id: 13,
+        title: "How to initiate a repo?",
+        answers: [
+          {
+            id: 27,
+            text: "git start",
+            correct: false,
+          },
+          {
+            id: 28,
+            text: "git init",
+            correct: true,
+          },
+        ],
+      },
     ],
   },
 ];
